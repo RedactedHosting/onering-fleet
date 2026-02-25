@@ -1,0 +1,10 @@
+# Local cache from the generator (stores the last entered username)
+.last_ssh_user
+
+# Generated per-host helper scripts (keep source templates tracked)
+*_ssh.sh
+!generate_ssh_script.sh
+
+# Fleet run logs
+logs/
+Fleetrunner_logs/
