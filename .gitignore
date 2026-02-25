@@ -4,6 +4,8 @@
 # Generated per-host helper scripts (keep source templates tracked)
 *_ssh.sh
 !generate_ssh_script.sh
+!function_check_onering.sh
+!ping_check_onering.sh
 
 # Fleet run logs
 logs/

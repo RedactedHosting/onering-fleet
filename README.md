@@ -27,6 +27,12 @@ Important: backend environment setup is the responsibility of the system adminis
 - `fleet_runner.sh`  
   Batch runner that discovers generated host helpers (for example `123_web_ssh.sh`) and executes either `--update` or diagnostic/custom commands.
 
+- `ping_check_onering.sh`  
+  Preflight reachability check that pings each host extracted from generated helper scripts before running `fleet_runner.sh`.
+
+- `function_check_onering.sh`  
+  Preflight SSH check that runs a non-interactive `true` command against each generated helper before running `fleet_runner.sh`.
+
 - `logs/` (created automatically)  
   Timestamped run logs for auditing and troubleshooting.
 
@@ -41,12 +47,16 @@ Important: backend environment setup is the responsibility of the system adminis
 2. Run updates across the fleet:
 
 ```bash
+./ping_check_onering.sh     # preflight ICMP reachability check
+./function_check_onering.sh # preflight SSH auth/connectivity check (recommended)
 ./fleet_runner.sh
 ```
 
 3. Run diagnostics:
 
 ```bash
+./ping_check_onering.sh -c 2 -t 1  # ping each host twice, 1s timeout
+./function_check_onering.sh        # verify SSH path using helper scripts
 ./fleet_runner.sh -d              # disk usage (df -h)
 ./fleet_runner.sh -m              # memory snapshot (free -h)
 ./fleet_runner.sh -c              # CPU summary (top -bn1 | head -n5)
@@ -78,6 +88,22 @@ Enter script name (e.g., web_ssh.sh): db
 Run a fleet check and an update:
 
 ```bash
+$ ./ping_check_onering.sh
+[INFO] Pinging 192.168.1.10 (from 101_web_ssh.sh) ...
+[OK] 192.168.1.10 reachable
+---
+[INFO] Pinging 192.168.1.11 (from 102_db_ssh.sh) ...
+[OK] 192.168.1.11 reachable
+...
+
+$ ./function_check_onering.sh
+[INFO] Checking SSH to opsadmin@192.168.1.10 via 101_web_ssh.sh ...
+[OK] SSH reachable: opsadmin@192.168.1.10
+---
+[INFO] Checking SSH to opsadmin@192.168.1.11 via 102_db_ssh.sh ...
+[OK] SSH reachable: opsadmin@192.168.1.11
+...
+
 $ ./fleet_runner.sh -u
 [INFO] Running ./101_web_ssh.sh uptime
  10:05:12 up 12 days,  2:45,  1 user,  load average: 0.09, 0.05, 0.01
@@ -105,6 +131,8 @@ $ ./fleet_runner.sh
 - OneRing Fleet is an operations convenience tool. It is not a complete security control or zero-trust implementation.
 - The generated `--update` path calls `sudo -n /root/u.sh`; review and restrict this for your environment.
 - Port forwarding, firewall policy, VPN/Zero Trust controls, and remote update script design are intentionally left to the system administrator operating the environment.
+- `ping_check_onering.sh` uses ICMP ping. If your environment blocks ICMP, a host may still be SSH-reachable even when the ping precheck warns.
+- `function_check_onering.sh` runs a non-interactive `true` command over SSH, which is usually a better preflight than ICMP for hardened environments.
 - The generator stores the last used SSH username in `.last_ssh_user` for convenience.
 - Generated helper scripts and fleet logs may contain internal hostnames, usernames, and IPs.
 - A `.gitignore` is included to help prevent accidentally committing generated scripts, logs, and cache files.
