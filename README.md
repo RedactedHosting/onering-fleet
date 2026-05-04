@@ -152,8 +152,8 @@ Do not grant broad passwordless sudo for all commands. Instead, allow only the u
 Example `/etc/sudoers.d/ops-update` entry (edit with `visudo -f /etc/sudoers.d/ops-update`):
 
 ```sudoers
-# Allow opsadmin to run only the approved update script without a password
-opsadmin ALL=(root) NOPASSWD: /root/u.sh
+# Allow {user_changme} to run only the approved update script without a password:
+user_changeme ALL=(root) NOPASSWD: /root/u.sh
 ```
 
 Recommended hardening for `/root/u.sh`:
